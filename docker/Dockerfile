@@ -1,7 +1,9 @@
-#TO BE RUN AS
-#docker run -dit --privileged --name openstack-stein-container --net=host -v /sys/fs/cgroup:/sys/fs/cgroup:ro openstack
+# Build from the repository root:  docker build -f docker/Dockerfile -t openstack .
+# Run:  docker run -dit --privileged --name openstack-stein-container --net=host \
+#         -v /sys/fs/cgroup:/sys/fs/cgroup:ro openstack
+# Then, inside the container:  ./Stein_Installation.sh
 
-# Utilizzare l'immagine di base di Ubuntu 18.04
+# Base image: Ubuntu 18.04
 FROM ubuntu:18.04
 
 ENV container docker
@@ -16,13 +18,13 @@ RUN apt-get update && apt-get install -y systemd && apt-get clean && rm -rf /var
 
 RUN ln -sf /usr/share/zoneinfo/Europe/Rome /etc/localtime && echo "Europe/Rome" > /etc/timezone
 
-# Aggiorna i pacchetti e installa le dipendenze necessarie
+# Update packages and install build dependencies
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     software-properties-common \
     curl \
     iproute2
 
-# Aggiungi il repository OpenStack Stein
+# Add the OpenStack Stein cloud archive
 RUN add-apt-repository cloud-archive:stein -y
 
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
@@ -65,16 +67,16 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     openstack-dashboard \
     python3-openstackclient
     
-    # Clona il repository di installazione di OpenStack
-RUN git clone https://github.com/lucadagati/openstack_stein_swift.git /openstack_stein_swift
+# Copy the installer from the local build context
+COPY . /openstack_stein_swift
 
-# Imposta la directory di lavoro
+# Working directory
 WORKDIR /openstack_stein_swift
 
-# Esegui lo script di installazione di OpenStack Stein
+# Make the installer executable
 RUN chmod +x Stein_Installation.sh
 
-# Imposta il comando di default del container
+# Boot systemd as init
 #CMD cd /openstack_stein_swift && /bin/bash -c "./Stein_Installation.sh"
 CMD ["/sbin/init"]
 

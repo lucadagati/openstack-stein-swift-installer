@@ -1,40 +1,56 @@
-# OpenStack Stein with Swift
+# OpenStack Stein + Swift — single-node installer
 
-<p align="center">
-     <img src=https://github.com/lucadagati/openstack_stein_swift/blob/main/OpenStack-Logo-Horizontal.png>
-</p>
+![OpenStack](docs/openstack-logo.png)
 
+A Bash script that deploys a complete **OpenStack Stein** cloud on one Ubuntu 18.04 LTS machine: Keystone, Glance, Placement, Nova, Neutron, Horizon and **Swift** object storage (on a real unmounted disk or an automatically created virtual disk image). Intended for labs, teaching and reproducible test environments.
 
-This bash script installs the Stein version of OpenStack with keystone, glance, placement, nova, neutron, horizon, and Swift (with integrated virtualized drive) services. The script is an Ubuntu shell script and should be executed on an Ubuntu 18.04 LTS system.
+## Requirements
 
-## Prerequisites
+- Ubuntu 18.04 LTS (fresh install recommended), root access (`sudo`), Internet connectivity
+- Optionally an **unmounted** disk/partition for Swift
 
-- Ubuntu 18.04 LTS system
-- Internet connection
-- Git installed
-- sudo
-
-## Installation
-
-To use the script, download and execute the source code by running the following commands:
+## Install
 
 ```bash
 git clone https://github.com/lucadagati/openstack_stein_swift.git
 cd openstack_stein_swift
-# /path/to/hdd change the path with the drive path you want to use for swift (drive must be unmounted)
-# if to specified it will create a virtual hard drive
-sudo ./Stein_Installation.sh /path/to/hdd
-
-#note:
-#during the installation the script will ask:
-# *** 50-server.cnf (Y/I/N/O/D/Z) [default=N] ?
-# answer: N
-
+sudo ./Stein_Installation.sh            # Swift on a virtual disk image (hdd.img)
+sudo ./Stein_Installation.sh /dev/sdX   # Swift on a dedicated disk
 ```
 
-## Configuration
+During the installation `apt` will ask about the `50-server.cnf` configuration file: answer **N** (keep the version installed by the script).
 
-The "conf" directory contains preconfigured config files for the services. Any changes to the variables in the script should be reflected in these files. The "admin-openrc" and "demo-openrc" files contain preconfigured credentials and should be updated if necessary.
+The script downloads the CirrOS test image and the MariaDB repository helper itself; neither is stored in this repository.
 
-## Note
-Please be aware that the script have been tested on an specific environment and that it is not guaranteed to work in all environments.
+## What it does
+
+1. Adds the host IP as `controller` in `/etc/hosts` and installs the Stein cloud archive packages.
+2. Creates the databases and users for every service, then configures chrony, RabbitMQ and memcached.
+3. Installs and configures Keystone → Glance → Placement → Nova → Neutron → Horizon → Swift, copying the templates in [conf_files/](conf_files/) and verifying each service (`token issue`, `image list`, `swift stat`, …).
+
+## Docker
+
+[docker/Dockerfile](docker/Dockerfile) builds an Ubuntu 18.04 systemd image with the packages pre-installed:
+
+```bash
+docker build -f docker/Dockerfile -t openstack .
+docker run -dit --privileged --name openstack-stein-container --net=host \
+  -v /sys/fs/cgroup:/sys/fs/cgroup:ro openstack
+docker exec -it openstack-stein-container ./Stein_Installation.sh
+```
+
+## Repository layout
+
+```
+Stein_Installation.sh   installer
+conf_files/             configuration templates for every service
+admin-openrc            credentials for the admin user (sourced by the script)
+demo-openrc             credentials for the demo user
+docker/Dockerfile       containerised variant
+```
+
+## Security notice
+
+All passwords (`ADMIN_PASS`, `MYUSER_PASS`, `*_DBPASS`, `RABBIT_PASS`, the MariaDB root `password`, …) are the **well-known defaults from the OpenStack install guide**. They are suitable only for isolated test setups. Change them consistently in the script, the `*-openrc` files and `conf_files/` before exposing the deployment.
+
+OpenStack Stein and Ubuntu 18.04 are end-of-life; do not use this for production. The script was tested on a specific environment and may need adjustments elsewhere.

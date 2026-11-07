@@ -1,4 +1,15 @@
-#! /bin/bash
+#!/bin/bash
+# OpenStack Stein (keystone, glance, placement, nova, neutron, horizon, swift)
+# single-node installer for Ubuntu 18.04 LTS.
+# Usage: sudo ./Stein_Installation.sh [/path/to/unmounted/disk]
+#   If no disk is given, a virtual disk image (hdd.img) is used for Swift.
+# WARNING: lab defaults — change every *_PASS / *_DBPASS value (here, in
+# admin-openrc, demo-openrc and conf_files/) before any non-test use.
+
+if [ "$(id -u)" -ne 0 ]; then
+  echo "This script must be run as root (use sudo)." >&2
+  exit 1
+fi
 
 function host_config()
 {
