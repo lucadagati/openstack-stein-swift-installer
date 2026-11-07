@@ -643,7 +643,7 @@ neutron_db_password="NEUTRON_DBPASS"
 current_path=$(pwd)
 ip=$(ip route get 8.8.8.8 | awk 'NR == 1 {print $7; exit }')
 network_interface=$(ip route get 8.8.8.8 | awk 'NR == 1 {print $5 ; exit }')
-object_storage_disk=${1:-"hdd.img"};
+object_storage_disk=${1:-}   # empty -> swift_install() creates ~/hdd.img
 
 ####Getting Provider NIC name and IP Address ends #####
 
