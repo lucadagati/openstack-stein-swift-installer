@@ -68,16 +68,16 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     python3-openstackclient
     
 # Copy the installer from the local build context
-COPY . /openstack_stein_swift
+COPY . /openstack-stein-swift-installer
 
 # Working directory
-WORKDIR /openstack_stein_swift
+WORKDIR /openstack-stein-swift-installer
 
 # Make the installer executable
 RUN chmod +x Stein_Installation.sh
 
 # Boot systemd as init
-#CMD cd /openstack_stein_swift && /bin/bash -c "./Stein_Installation.sh"
+#CMD cd /openstack-stein-swift-installer && /bin/bash -c "./Stein_Installation.sh"
 CMD ["/sbin/init"]
 
 

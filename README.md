@@ -12,8 +12,8 @@ A Bash script that deploys a complete **OpenStack Stein** cloud on one Ubuntu 18
 ## Install
 
 ```bash
-git clone https://github.com/lucadagati/openstack_stein_swift.git
-cd openstack_stein_swift
+git clone https://github.com/lucadagati/openstack-stein-swift-installer.git
+cd openstack-stein-swift-installer
 sudo ./Stein_Installation.sh            # Swift on a virtual disk image (hdd.img)
 sudo ./Stein_Installation.sh /dev/sdX   # Swift on a dedicated disk
 ```
